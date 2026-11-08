@@ -1,5 +1,5 @@
 import pytest
-from calculadora import sumar, restar, multiplicar, dividir
+from calculadora import sumar, restar, multiplicar, dividir, potencia
 
 
 def test_sumar():
@@ -21,3 +21,7 @@ def test_dividir():
 def test_dividir_entre_cero():
     with pytest.raises(ValueError):
         dividir(5, 0)
+
+
+def test_potencia():
+    assert potencia(2, 3) == 8
