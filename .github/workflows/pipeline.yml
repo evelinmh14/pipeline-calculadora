@@ -1,0 +1,69 @@
+name: Pipeline CI/CD
+
+# CUÁNDO se ejecuta
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ETAPA 1: Integración Continua
+  ci:
+    name: Revisar y probar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Revisar estilo del código (lint)
+        run: flake8 . --max-line-length=100
+
+      - name: Ejecutar pruebas
+        run: pytest -v
+
+  # ETAPA 2: Empaquetar (solo si CI pasó y es la rama main)
+  build:
+    name: Empaquetar aplicación
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Crear paquete
+        run: |
+          mkdir paquete
+          cp calculadora.py paquete/
+          zip -r calculadora.zip paquete
+
+      - name: Guardar el paquete
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculadora-paquete
+          path: calculadora.zip
+
+  # ETAPA 3: Despliegue (simulado)
+  deploy:
+    name: Desplegar
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Descargar el paquete
+        uses: actions/download-artifact@v4
+        with:
+          name: calculadora-paquete
+
+      - name: Simular despliegue
+        run: |
+          echo "Desplegando calculadora.zip ..."
+          ls -l calculadora.zip
+          echo "Despliegue exitoso"
